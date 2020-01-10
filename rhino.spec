@@ -28,34 +28,31 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-%define cvs_version 1_7R2
+%define scm_version 1_7R4
+%define simple_version 1.7
 
 Name:           rhino
-Version:        1.7
-Release:        0.7.r2.2%{?dist}
+Version:        1.7R4
+Release:        4%{?dist}
 Epoch:          0
 Summary:        JavaScript for Java
-License:        GPL+ and LGPL+ and Netscape and MPLv1.0 and (MPLv1.1 or GPLv2+)
+License:        MPLv2.0
 
-Source0:        ftp://ftp.mozilla.org/pub/mozilla.org/js/rhino%{cvs_version}.zip
+Source0:        https://github.com/mozilla/rhino/archive/Rhino%{scm_version}_RELEASE.zip
 
 Source2:        %{name}.script
 
 Patch0:         %{name}-build.patch
-# Patch to try several methods of loading jline library or fail gracefully
-Patch1:         %{name}-457336.diff
+Patch1:         %{name}-1.7R3-crosslink.patch
+Patch2:         %{name}-shell-manpage.patch
 URL:            http://www.mozilla.org/rhino/
 Group:          Development/Libraries/Java
 
 BuildRequires:  ant
-BuildRequires:  bea-stax-api
 BuildRequires:  java-1.6.0-openjdk-devel >= 1:1.6.0.0
 Requires:       jpackage-utils
 Requires:       jline
 
-# Disable xmlbeans until we can get it into Fedora
-#Requires:       xmlbeans
-#BuildRequires:  xmlbeans
 BuildArch:      noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n) 
 
@@ -81,9 +78,10 @@ Group:          Development/Documentation
 Javadoc for %{name}.
 
 %prep
-%setup -q -n %{name}%{cvs_version}
-%patch0 -p1
-%patch1 -p0 -b .jline
+%setup -q -n %{name}-Rhino%{scm_version}_RELEASE
+%patch0 -p1 -b .build
+%patch1 -p1 -b .crosslink
+%patch2 -p1 -b .manpage
 
 # Fix build
 %{__perl} -pi -e 's|.*<get.*src=.*>\n||' build.xml testsrc/build.xml toolsrc/org/mozilla/javascript/tools/debugger/build.xml xmlimplsrc/build.xml
@@ -95,18 +93,13 @@ Javadoc for %{name}.
 %{__perl} -pi -e 's|^implementation.version: Rhino .* release .* \${implementation.date}|implementation.version: Rhino %{version} release %{release} \${implementation.date}|' build.properties
 
 %build
-export CLASSPATH=
-export OPT_JAR_LIST=:
-%ant -Dxbean.jar=$(build-classpath xmlbeans/xbean) \
-     -Djsr173.jar=$(build-classpath bea-stax-api) deepclean jar copy-all javadoc
+ant deepclean jar copy-all javadoc -Dno-xmlbeans=1
 
 pushd examples
-# xbeans component is optional. Disabled until we can get it into Fedora
-#export CLASSPATH=../build/%{name}%{cvs_version}/js.jar:$(build-classpath xmlbeans/xbean)
 
-export CLASSPATH=../build/%{name}%{cvs_version}/js.jar:$(build-classpath xmlbeans/xbean 2>/dev/null)
+export CLASSPATH=../build/%{name}%{scm_version}/js.jar:$(build-classpath xmlbeans/xbean 2>/dev/null)
 %{javac} *.java
-%{jar} cvf ../build/%{name}%{cvs_version}/%{name}-examples-%{version}.jar *.class
+%{jar} cvf ../build/%{name}%{scm_version}/%{name}-examples.jar *.class
 popd
 
 %install
@@ -114,16 +107,21 @@ popd
 
 # jars
 %{__mkdir_p} %{buildroot}%{_javadir}
-%{__cp} -a build/%{name}%{cvs_version}/js.jar %{buildroot}%{_javadir}/%{name}-%{version}.jar
-%{__cp} -a build/%{name}%{cvs_version}/%{name}-examples-%{version}.jar %{buildroot}%{_javadir}/%{name}-examples-%{version}.jar
-(cd %{buildroot}%{_javadir} && %{__ln_s} %{name}-%{version}.jar js-%{version}.jar)
-(cd %{buildroot}%{_javadir} && for jar in *-%{version}*; do %{__ln_s} ${jar} `echo $jar| %{__sed} "s|-%{version}||g"`; done)
+%{__cp} -a build/%{name}%{scm_version}/js.jar %{buildroot}%{_javadir}/%{name}-%{simple_version}.jar
+%{__cp} -a build/%{name}%{scm_version}/%{name}-examples.jar %{buildroot}%{_javadir}/%{name}-examples-%{simple_version}.jar
+(cd %{buildroot}%{_javadir} && %{__ln_s} %{name}-%{simple_version}.jar js.jar;
+                               %{__ln_s} %{name}-%{simple_version}.jar js-%{simple_version}.jar;
+                               %{__ln_s} %{name}-%{simple_version}.jar %{name}.jar;)
+(cd %{buildroot}%{_javadir} && %{__ln_s} %{name}-examples-%{simple_version}.jar %{name}-examples.jar)
 
 # javadoc
-%{__mkdir_p} %{buildroot}%{_javadocdir}/%{name}-%{version}
-%{__cp} -a build/%{name}%{cvs_version}/javadoc/* %{buildroot}%{_javadocdir}/%{name}-%{version}
-%{__ln_s} %{name}-%{version} %{buildroot}%{_javadocdir}/%{name}
-%{_bindir}/find %{buildroot}%{_javadocdir}/%{name}-%{version} -type f -name '*.html' | %{_bindir}/xargs %{__perl} -pi -e 's/\r$//g'
+%{__mkdir_p} %{buildroot}%{_javadocdir}/%{name}-%{simple_version}
+%{__cp} -a build/%{name}%{scm_version}/javadoc/* %{buildroot}%{_javadocdir}/%{name}-%{simple_version}
+(cd %{buildroot}%{_javadocdir} && %{__ln_s} %{name}-%{simple_version} %{name})
+
+# man page
+mkdir -p %{buildroot}%{_mandir}/man1/
+install -m 644 build/%{name}%{scm_version}/man/%{name}.1 %{buildroot}%{_mandir}/man1/%{name}.1
 
 ## script
 %__mkdir_p %{buildroot}%{_bindir}
@@ -140,6 +138,8 @@ popd
 %defattr(0644,root,root,0755)
 %attr(0755,root,root) %{_bindir}/*
 %{_javadir}/*
+%{_mandir}/man1/%{name}.1*
+%doc LICENSE.txt
 
 %files demo
 %defattr(0644,root,root,0755)
@@ -150,6 +150,22 @@ popd
 %doc %{_javadocdir}/*
 
 %changelog
+* Tue Feb 02 2016 Elliott Baron <ebaron@redhat.com> - 0:1.7R4-4
+- Add missing man page patch.
+- Resolves: rhbz#1298084
+
+* Tue Feb 02 2016 Elliott Baron <ebaron@redhat.com> - 0:1.7R4-3
+- Add man page for Rhino shell.
+- Add LICENSE.txt.
+- Resolves: rhbz#1298084
+
+* Fri Nov 06 2015 Severin Gehwolf <sgehwolf@redhat.com> - 0:1.7R4-2
+- Preserve nicer backward compatibility by using same jar file
+  names and symlink names as 1.7-0.7.r2 did.
+
+* Thu Nov 05 2015 Severin Gehwolf <sgehwolf@redhat.com> - 0:1.7R4-1
+- Rebase to rhino 1.7R4. Resolves RHBZ#1244351.
+
 * Mon Jan 25 2010 Deepak Bhole <dbhole@redhat.com> - 0:1.7-0.7.r2.2
 - Updated license field
 
