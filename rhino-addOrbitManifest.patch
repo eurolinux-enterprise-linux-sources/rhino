@@ -4,10 +4,10 @@ diff -up rhino1_7R3/src/manifest.fixManifest rhino1_7R3/src/manifest
 @@ -1,6 +1,31 @@
  Manifest-Version: 1.0
  Main-Class: org.mozilla.javascript.tools.shell.Main
--Implementation-Version: 1.7R4
--Implementation-Title: Mozilla Rhino 1.7R4
-+Implementation-Version: 1.7R4
-+Implementation-Title: Mozilla Rhino 1.7R4
+-Implementation-Version: 1.7R5
+-Implementation-Title: Mozilla Rhino 1.7R5
++Implementation-Version: 1.7R5
++Implementation-Title: Mozilla Rhino 1.7R5
  Implementation-Vendor: Mozilla Foundation
 -Implementation-URL: http://www.mozilla.org/rhino
 \ Chybí znak konce řádku na konci souboru

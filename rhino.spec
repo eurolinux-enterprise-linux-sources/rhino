@@ -28,14 +28,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-%define scm_version 1_7R4
+%define scm_version 1_7R5
 
 Name:           rhino
-# R3 doesn't mean a prerelease, but behind R there is a version of this implementation
+# R5 doesn't mean a prerelease, but behind R there is a version of this implementation
 # of Javascript version 1.7 (which is independent from this particular implementation,
 # e.g., there is C++ implementation in Spidermonkey)
-Version:        1.7R4
-Release:        4%{?dist}
+Version:        1.7R5
+Release:        1%{?dist}
 Summary:        JavaScript for Java
 License:        MPLv2.0 
 
@@ -50,6 +50,12 @@ Patch0:         %{name}-build.patch
 Patch1:         %{name}-addOrbitManifest.patch
 Patch2:         %{name}-1.7R3-crosslink.patch
 Patch3:         %{name}-shell-manpage.patch
+# Back out patch for Mozilla bug#686806 (JSONParser parses invalid JSON input).
+# This change made the JSONParser class more strict and will throw exceptions
+# for JSON that does not adhere to spec for a few cases, where no exception
+# was thrown previously. This patch reverts this change to preserve backward
+# compatibility.
+Patch4:         %{name}-backout-686806.patch
 
 URL:            http://www.mozilla.org/rhino/
 Group:          Development/Libraries
@@ -99,6 +105,7 @@ Javadoc for %{name}.
 %patch1 -p1 -b .fixManifest
 %patch2 -p1 -b .crosslink
 %patch3 -p1 -b .manpage
+%patch4 -p1 -b .backoutJsonFix
 
 # Fix build
 sed -i -e '/.*<get.*src=.*>$/d' build.xml testsrc/build.xml \
@@ -169,6 +176,15 @@ install -p -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_mavenpomdir}/JPP-%{name}.pom
 %doc %{_javadocdir}/%{name}
 
 %changelog
+* Tue Nov 01 2016 Elliott Baron <ebaron@redhat.com> - 1.7R5-1
+- Update to 1.7R5.
+- Add rhino-backout-686806.patch for backward compatibility.
+- Resolves: rhbz#1350331
+
+* Fri Aug 01 2014 Elliott Baron <ebaron@redhat.com> - 1.7R4-5
+- Update man page patch
+- Resolves: rhbz#948445
+
 * Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 1.7R4-4
 - Mass rebuild 2013-12-27
 

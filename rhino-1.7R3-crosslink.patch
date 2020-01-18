@@ -7,5 +7,5 @@ diff -up rhino1_7R3/build.xml~ rhino1_7R3/build.xml
               author="true"
 +             link="/usr/share/javadoc/java"
               windowtitle="${Name}" />
+     <zip destfile="${dist.dir}/javadoc.zip" basedir="${dist.dir}/javadoc"/>
    </target>
- 
