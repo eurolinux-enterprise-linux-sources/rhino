@@ -35,7 +35,7 @@ Name:           rhino
 # of Javascript version 1.7 (which is independent from this particular implementation,
 # e.g., there is C++ implementation in Spidermonkey)
 Version:        1.7R4
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        JavaScript for Java
 License:        MPLv2.0 
 
@@ -169,6 +169,10 @@ install -p -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_mavenpomdir}/JPP-%{name}.pom
 %doc %{_javadocdir}/%{name}
 
 %changelog
+* Fri Aug 01 2014 Elliott Baron <ebaron@redhat.com> - 1.7R4-5
+- Update man page patch
+- Resolves: rhbz#948445
+
 * Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 1.7R4-4
 - Mass rebuild 2013-12-27
 
