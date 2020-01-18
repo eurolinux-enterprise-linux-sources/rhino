@@ -35,7 +35,7 @@ Name:           rhino
 # of Javascript version 1.7 (which is independent from this particular implementation,
 # e.g., there is C++ implementation in Spidermonkey)
 Version:        1.7R4
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        JavaScript for Java
 License:        MPLv2.0 
 
@@ -169,9 +169,11 @@ install -p -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_mavenpomdir}/JPP-%{name}.pom
 %doc %{_javadocdir}/%{name}
 
 %changelog
+* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 1.7R4-4
+- Mass rebuild 2013-12-27
+
 * Mon Jun 24 2013 Elliott Baron <ebaron@redhat.com> 1.7R4-3
 - Add man page for Rhino shell.
-- Resolves: rhbz#948445
 
 * Thu Feb 28 2013 Krzysztof Daniel <kdaniel@redhat.com> 1.7R4-2
 - Add a depmap to keep compatibility with previous versions.
